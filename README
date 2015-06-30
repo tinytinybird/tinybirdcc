@@ -1,0 +1,2 @@
+This is a tinybird c compiler. It is a reimplementation of lcc when I was reading
+the book "A Retargetable C Compiler: Design and Implementation". 
