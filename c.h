@@ -5,6 +5,12 @@
  * 
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+
+
 /* Exported macros */
 #define NULL ((void*)0)
 #define NELEMS(a) ((int)(sizeof (a)/sizeof ((a)[0])))
