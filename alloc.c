@@ -1,18 +1,24 @@
 /* 
  * Arena based Memory Allocation
  * 
+ * - blocks are allocated in tree arenas
+ * - deallocate one whole arena each time
+ *
  */
 
 #include "c.h"
+
 
 /* Exported macros */
 #define NEW(p,a) ((p)) = allocate(sizeof *(p), (a))
 #define NEW0(p,a) memset(NEW((p),(a)), 0, sizeof *(p))
 
+
 /* Exported functions */
 extern void *allocate(unsigned long n, unsigned a);
 extern void deallocate(unsigned a);
 extern void *newarray(unsigned long m, unsigned long n, unsigned a);
+
 
 /* Types */
 struct block {
@@ -33,12 +39,14 @@ union header {
     union align a;
 };
 
+
 /* Data */
 static struct block
     first[] = { { NULL }, { NULL }, { NULL } }, /* initiate with only one NULL? */
     *arena[] = { &first[0], &first[1], &first[2] };
 
 static struct block *freeblocks;
+
 
 /* Functions */
 void *allocate(unsigned long n, unsigned a)
