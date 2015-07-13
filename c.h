@@ -17,6 +17,7 @@
 /* Interface */
 
 /* Exported types */
+enum { PERM=0, FUNC, STMT };
 
 /* Exported data */
 
