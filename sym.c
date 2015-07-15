@@ -5,6 +5,9 @@
 
 #include "c.h"
 
+/* macros */
+#define equalp(x) v.x == p->sym.u.c.v.x
+
 
 /* typedefs */
 typedef struct symbol *Symbol;
@@ -23,7 +26,7 @@ typedef union value {
     unsigned short us;
     unsigned int u;
     float f;
-    double int u;
+    double d;
     void *p;
 } Value;
 
@@ -40,6 +43,7 @@ struct symbol {
     /* symbol flags */
     unsigned temporary:1;
     unsigned generated:1;
+    unsigned defined:1;
 
     Type type;
     float ref;
@@ -95,7 +99,7 @@ extern int level;
 
 /* data */
 static struct table
-    cns = { CONSTANT },
+    cns = { CONSTANTS },
     ext = { GLOBAL },
     ids = { GLOBAL },
     tys = { GLOBAL };
@@ -112,7 +116,7 @@ int level = GLOBAL;
 
 
 /* functions */
-Table table(Table tp; int level)
+Table table(Table tp, int level)
 {
     Table new;
 
@@ -149,7 +153,7 @@ void exitscope()
 {
     rmtypes(level);
     if (types->level == level)
-	types = type->previous;
+	types = types->previous;
     if (identifiers->level == level) {
 	/* warn if more than 127 identifiers */
 	identifiers = identifiers->previous;
@@ -226,5 +230,70 @@ Symbol constant(Type ty, Value v)
     ty = unqual(ty);
     for (p = constants->buckets[h]; p; p = p->link)
 	if (eqtype(ty, p->sym.type, 1))
-	    /*  */
+	    switch (ty->op) {
+	    case CHAR:      if (equalp(uc)) return &p->sym; break;
+	    case SHORT:     if (equalp(ss)) return &p->sym; break;
+	    case INT:       if (equalp(i))  return &p->sym; break;
+	    case UNSIGNED:  if (equalp(u))  return &p->sym; break;
+	    case FLOAT:     if (equalp(f))  return &p->sym; break;
+	    case DOUBLE:    if (equalp(d))  return &p->sym; break;
+	    case ARRAY:
+	    case FUNCTION:
+	    case POINTER:   if (equalp(p))  return &p->sym; break;
+	    }
+    NEW0(p, PERM);
+    p->sym.name = vtoa(ty,v);
+    p->sym.scope = CONSTANTS;
+    p->sym.type = ty;
+    p->sym.sclass = STATIC;
+    p->sym.sym.u.c.v = v;
+    p->link = constants->buckets[h];
+    constants->buckets[h] = p;
+    p->sym.up = constants->all;
+    constants->all = &p->sym;
+    if (ty->u.sym && !ty->u.sym->addressed)
+	(*IR->defsymbol)(&p->sym);
+    p->sym.defined = 1;
+    return &p->sym;
+}
+
+Symbol intconst(int n)
+{
+    Value v;
+    v.i = n;
+    return constant(inttype, v);
+}
+
+Symbol genident(int scls, int lev, Type ty)
+{
+    Symbol p;
+
+    NEW0(p, lev >= LOCAL ? FUNC : PERM);
+    p->name = stringd(genlabel(l));
+    p->scope = lev;
+    p->sclass = scls;
+    p->type = ty;
+    p->generated = 1;
+    if (lev == GLOBAL)
+	(*IR->defsymbol)(p);
+    return p;
+}
+
+Symbol temporary(int scls, Type type, int lev)
+{
+    Symbol p = genident(scls, ty, lev);
+
+    p->temporary = 1;
+
+    return p;
+}
+
+Symbol newtemp(int sclass, int tc)
+{
+    Symbol p = temporary(sclass, btot(tc), LOCAL);
+
+    (*IR->local)(p);
+    p->defined = 1;
+    
+    return p;
 }
