@@ -9,6 +9,32 @@
 #define equalp(x) v.x == p->sym.u.c.v.x
 
 
+/* exported macros */
+#define isqual(t) ((t)->op >= CONST)
+#define unqual(t) (isqual(t) ? (t)->type : (t))
+
+#define isvolatile(t) ((t)->op == VOLATILE \
+                       || (t)->op == CONST+VOLATILE)
+#define isconst(t) ((t)->op == CONST \
+                    || (t)->op == CONST+VOLATILE)
+#define isarray(t) (unqual(t)->op == ARRAY)
+#define isstruct(t) (unqual(t)->op == STRUCT \
+                     || unqual(t)->op == UNION)
+#define isunion(t) (unqual(t)->op == UNION) 
+#define isfunc(t) (unqual(t)->op == FUNCTION)
+#define isptr(t) (unqual(t)->op == POINTER)
+#define ischar(t) (unqual(t)->op == CHAR)
+#define isint(t) (unqual(t)->op >= CHAR \
+        && (unqual(t)->op <= UNSIGNED)
+#define isfloat(t) (unqual(t)->op <= DOUBLE)
+#define isarith(t) (unqual(t)->op <= UNSIGNED)
+#define isunsigned(t) (unqual(t)->op == UNSIGNED)
+#define isdouble(t) (unqual(t)->op == DOUBLE)
+#define isscalar(t) (unqual(t)->op <= POINTER \
+                     || unqual(t)->op == ENUM)
+#define isenum(t) (unqual(t)->op == ENUM)
+
+
 /* typedefs */
 typedef struct symbol *Symbol;
 typedef struct coord {
