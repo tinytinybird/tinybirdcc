@@ -72,6 +72,7 @@ static struct entry {
 
 static int maxlevel;
 
+/* the symbol table entry for all pointer types */
 static Symbol pointersym;
 
 
@@ -128,6 +129,11 @@ void typeInit()
         voidtype = type(VOID, NULL, 0, 0, p);
         p->type = voidtype;
     }
+
+    /* initiate symbol table for pointers */
+    pointersym = install(string("T*"), &types, GLOBAL, PERM);
+    pointersym->addressed = IR->ptrmetric.outofline;
+    voidptype = ptr(voidptype);
 }
 
 void rmtypes(int lev)
@@ -158,3 +164,58 @@ Type ptr(Type ty)
                 IR->ptrmetric.align, pointersym);
 }
 
+Type deref(Type ty)
+{
+    if (isptr(ty))
+        ty = ty->type;
+    else
+        error("type error: %s\n", "pointer expercted");
+    return isenum(ty) ? unqual(ty)->type : ty;
+}
+
+Type array(Type ty, int n, int a)
+{
+    if (isfunc(ty)) {
+        error("illegal type 'array of %t'\n", ty);
+        return array(inttype, n, 0);
+    }
+    if (level > GLOBAL && isarray(ty) && ty->size == 0)
+        error("missing array size\n");
+    if (ty->size == 0) {
+        if (unqual(ty) == voidptype)
+            error("illegal type 'array of %t'\n", ty);
+        else if (Aflag >= 2)
+            warning("declaring type 'array of %t' is undefined\n", ty);
+    } else if (n > INT_MAX/ty->size) {
+        error("size of 'array of %t' exceeds %d bytes\n", ty, INT_MAX);
+        n = 1;
+    }
+    return type(ARRAY, ty, n*ty->size, a ? a : ty->align, NULL);
+}
+
+Type atop(Type ty)
+{
+    if (isarray(ty))
+        return ptr(ty->type);
+    error("type error: %s\n", "array expected");
+    return ptr(ty);
+}
+
+Type qual(int op, Type ty)
+{
+    if (isarray(ty))
+        ty = type(ARRAY, qual(op, ty->type), ty->size, ty->align, NULL);
+    else if (isfunc(ty))
+        warning("qualified function type ignored\n");
+    else if (isconst(ty) && op == CONST
+          || isvolatile(ty) && op == VOLATILE)
+        error("illegal type '%k %t'\n", op, ty);
+    else {
+        if (isqual(ty)) {
+            op += ty->op;
+            ty = ty->type;
+        }
+        ty = type(op, ty, ty->size, ty->align, NULL);
+    }
+    return ty;
+}
