@@ -42,6 +42,10 @@ struct type {
     union {
         Symbol sym;
         /* function types */
+        struct {
+            unsigned oldstyle:1;
+            Type *proto;
+        } f;
     } u;
     Xtype x;
 };
@@ -133,7 +137,7 @@ void typeInit()
     /* initiate symbol table for pointers */
     pointersym = install(string("T*"), &types, GLOBAL, PERM);
     pointersym->addressed = IR->ptrmetric.outofline;
-    voidptype = ptr(voidptype);
+    voidptype = ptr(voidtype);  /* void pointer type */
 }
 
 void rmtypes(int lev)
@@ -211,7 +215,7 @@ Type qual(int op, Type ty)
           || isvolatile(ty) && op == VOLATILE)
         error("illegal type '%k %t'\n", op, ty);
     else {
-        if (isqual(ty)) {
+        if (isqual(ty)) {       /* build CONST+VOLATILE ty */
             op += ty->op;
             ty = ty->type;
         }
@@ -219,3 +223,33 @@ Type qual(int op, Type ty)
     }
     return ty;
 }
+
+Type func(Type ty, Type *proto, int style )
+{
+    if (ty && (isarray(ty) || isfunc(ty)))
+        error("illegal return type '%t'\n", ty);
+    ty = type(FUNCTION, ty, 0, 0, NULL);
+    ty->u.f.proto = proto;
+    ty->u.f.oldstyle = style;
+    return ty;
+}
+
+Type freturn(Type ty)
+{
+    if (isfunc(ty))
+        return ty->type;
+    error("type error: %s\n", "function expected");
+    return inttype;
+}
+
+int variadic(Type ty)
+{
+    if (isfunc(ty) && ty->u.f.proto) {
+        int i;
+        for (i = 0; ty->u.f.proto[i]; i++)
+            ;
+        return i > 1 && ty->u.f.proto[i-1] == voidtype;
+    }
+    return 0;
+}
+
