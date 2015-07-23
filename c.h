@@ -94,11 +94,11 @@ enum { PERM=0, FUNC, STMT };
 /* exported types: type.c */
 struct symbol {
     char *name;
-    int scope;
+    int scope;          /* GLOBAL, PARAM, LOCAL+k */
     Coordinate src;
     Symbol up;
     List uses;          /* not done yet */
-    int sclass;
+    int sclass;         /* STATIC, AUTO, EXTERN, REGISTER */
 
     /* symbol flags */
     unsigned temporary:1;
@@ -107,7 +107,9 @@ struct symbol {
     unsigned addressed:1;
 
     Type type;
-    float ref;
+    float ref;       /* approximates the number of times */
+                     /* the variable or label is referenced */
+
     union {
 	/* labels */
 	struct {
@@ -133,7 +135,7 @@ struct symbol {
 	/* globals */
 	/* temporaries */
     } u;
-    Xsymbol x;
+    Xsymbol x;         /* target-specific data only for back end */
     /* debugger extension */
 };
 
