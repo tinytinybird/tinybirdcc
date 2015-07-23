@@ -36,6 +36,7 @@
                       fieldsize(p) - fieldright(p))
 #define fieldmask(p) (~(~(unsigned)0<<fieldsize(p)))
 
+#define widen(t) (isint(t) || isenum(t) ? INT : ttob(t))
 
 /* typedefs */
 typedef struct type *Type;
@@ -431,5 +432,18 @@ int ttob(Type ty)
         return STRUCT;
     case ENUM:
         return INT;
+    }
+}
+
+Type btot(int op)
+{
+    switch (optype(op)) {
+    case F: return floattype;
+    case D: return doubletype;
+    case C: return chartype;
+    case S: return shorttype;
+    case I: return inttype;
+    case U: return unsignedtype;
+    case P: return voidtype;
     }
 }
