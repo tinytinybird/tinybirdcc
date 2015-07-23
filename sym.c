@@ -9,76 +9,6 @@
 #define equalp(x) v.x == p->sym.u.c.v.x
 
 
-/* typedefs */
-typedef struct symbol *Symbol;
-typedef struct coord {
-    char *file;
-    unsigned x, y;
-} Coordinate;
-
-typedef struct table *Table;
-
-typedef union value {
-    /* signed */ char sc;
-    short ss;
-    int i;
-    unsigned char uc;
-    unsigned short us;
-    unsigned int u;
-    float f;
-    double d;
-    void *p;
-} Value;
-
-
-/* exported types */
-struct symbol {
-    char *name;
-    int scope;
-    Coordinate src;
-    Symbol up;
-    List uses;          /* not done yet */
-    int sclass;
-
-    /* symbol flags */
-    unsigned temporary:1;
-    unsigned generated:1;
-    unsigned defined:1;
-
-    Type type;
-    float ref;
-    union {
-	/* labels */
-	struct {
-	    int label;
-	    Symbol equatedto;
-	} l;
-	/* struct types */
-        struct {
-            unsigned cfields:1;
-            unsigned vfields:1;
-            Field flist;
-        } s;
-	/* enum constants */
-        int value;
-	/* enum types */
-        Symbol *idlist;
-	/* constants */
-	struct {
-	    Value v;
-	    Symbol loc;
-	} c;
-	/* function symbols */
-	/* globals */
-	/* temporaries */
-    } u;
-    Xsymbol x;
-    /* debugger extension */
-};
-
-enum { CONSTANTS=1, LABELS, GLOBAL, PARAM, LOCAL };
-
-
 /* types */
 struct table {
     int level;
@@ -91,17 +21,6 @@ struct table {
 };
 
 #define HASHSIZE NELEMS(((Table)0)->buckets) /* 0-> ? */
-
-
-/* exported data */
-extern Table constants;
-extern Table externals;
-extern Table globals;
-extern Table identifiers;
-extern Table labels;
-extern Table types;
-
-extern int level;
 
 
 /* data */
@@ -253,7 +172,7 @@ Symbol constant(Type ty, Value v)
     p->sym.scope = CONSTANTS;
     p->sym.type = ty;
     p->sym.sclass = STATIC;
-    p->sym.sym.u.c.v = v;
+    p->sym.u.c.v = v;
     p->link = constants->buckets[h];
     constants->buckets[h] = p;
     p->sym.up = constants->all;
@@ -271,12 +190,12 @@ Symbol intconst(int n)
     return constant(inttype, v);
 }
 
-Symbol genident(int scls, int lev, Type ty)
+Symbol genident(int scls, Type ty, int lev)
 {
     Symbol p;
 
     NEW0(p, lev >= LOCAL ? FUNC : PERM);
-    p->name = stringd(genlabel(l));
+    p->name = stringd(genlabel(1));
     p->scope = lev;
     p->sclass = scls;
     p->type = ty;
@@ -286,7 +205,7 @@ Symbol genident(int scls, int lev, Type ty)
     return p;
 }
 
-Symbol temporary(int scls, Type type, int lev)
+Symbol temporary(int scls, Type ty, int lev)
 {
     Symbol p = genident(scls, ty, lev);
 

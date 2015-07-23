@@ -5,86 +5,6 @@
 
 #include "c.h"
 
-/* exported macros */
-#define isqual(t) ((t)->op >= CONST)
-#define unqual(t) (isqual(t) ? (t)->type : (t))
-
-#define isvolatile(t) ((t)->op == VOLATILE \
-                       || (t)->op == CONST+VOLATILE)
-#define isconst(t) ((t)->op == CONST \
-                    || (t)->op == CONST+VOLATILE)
-#define isarray(t) (unqual(t)->op == ARRAY)
-#define isstruct(t) (unqual(t)->op == STRUCT \
-                     || unqual(t)->op == UNION)
-#define isunion(t) (unqual(t)->op == UNION) 
-#define isfunc(t) (unqual(t)->op == FUNCTION)
-#define isptr(t) (unqual(t)->op == POINTER)
-#define ischar(t) (unqual(t)->op == CHAR)
-#define isint(t) (unqual(t)->op >= CHAR \
-        && (unqual(t)->op <= UNSIGNED)
-#define isfloat(t) (unqual(t)->op <= DOUBLE)
-#define isarith(t) (unqual(t)->op <= UNSIGNED)
-#define isunsigned(t) (unqual(t)->op == UNSIGNED)
-#define isdouble(t) (unqual(t)->op == DOUBLE)
-#define isscalar(t) (unqual(t)->op <= POINTER \
-                     || unqual(t)->op == ENUM)
-#define isenum(t) (unqual(t)->op == ENUM)
-
-#define fieldsize(p) (p)->bitsize
-#define fieldright(p) ((p)->lsb - 1)
-#define fieldleft(p) (8*(p)->type->size - \
-                      fieldsize(p) - fieldright(p))
-#define fieldmask(p) (~(~(unsigned)0<<fieldsize(p)))
-
-#define widen(t) (isint(t) || isenum(t) ? INT : ttob(t))
-
-/* typedefs */
-typedef struct type *Type;
-typedef struct field *Field;
-
-
-/* exported types */
-struct type {
-    int op;
-    Type type;  /* operand */
-    int align;
-    int size;
-    union {
-        Symbol sym;
-        /* function types */
-        struct {
-            unsigned oldstyle:1;
-            Type *proto;
-        } f;
-    } u;
-    Xtype x;
-};
-
-struct field {
-    char *name;
-    Type type;
-    int offset;
-    short bitsize;
-    short lsb;
-    Field link;
-};
-
-
-/* exported data */
-extern Type chartype;
-extern Type doubletype;
-extern Type floattype;
-extern Type inttype;
-extern Type longdouble;
-extern Type longtype;
-extern Type shorttype;
-extern Type signedchar;
-extern Type unsignedchar;
-extern Type unsignedlong;
-extern Type unsignedshort;
-extern Type unsignedtype;
-extern Type voidptype;
-extern Type voidtype;
 
 
 /* data */
@@ -97,6 +17,23 @@ static int maxlevel;
 
 /* the symbol table entry for all pointer types */
 static Symbol pointersym;
+
+/* exported data */
+Type chartype;
+Type doubletype;
+Type floattype;
+Type inttype;
+Type longdouble;
+Type longtype;
+Type shorttype;
+Type signedchar;
+Type unsignedchar;
+Type unsignedlong;
+Type unsignedshort;
+Type unsignedtype;
+Type voidptype;
+Type voidtype;
+
 
 
 /* functions */
@@ -173,7 +110,7 @@ void rmtypes(int lev)
                     *tq = tn->link;
                 else {
                     /* recompute maxlevel */
-                    if (tn->type.us.sym && tn->type.u.sym->scope > maxlevel)
+                    if (tn->type.u.sym && tn->type.u.sym->scope > maxlevel)
                         maxlevel = tn->type.u.sym->scope;
                     tq = &tn->link;
                 }
@@ -309,7 +246,7 @@ Field newfield(char *name, Type ty, Type fty)
     return p;
 }
 
-int eqtype(Type t1, Type ty2, int ret)
+int eqtype(Type ty1, Type ty2, int ret)
 {
     if (ty1 == ty2)
         return 1;
@@ -398,8 +335,8 @@ Type compose(Type ty1, Type ty2)
         Type *p1 = ty1->u.f.proto, *p2 = ty2->u.f.proto;
         Type ty = compose(ty1->type, ty2->type);
         List tlist = NULL;
-        if (p1 == NULL && p2 = NULL)
-            return fun(ty, NULL, 1);
+        if (p1 == NULL && p2 == NULL)
+            return func(ty, NULL, 1);
         if (p1 && p2 == NULL)
             return func(ty, p1, ty1->u.f.oldstyle);
         if (p2 && p1 == NULL)

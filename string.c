@@ -10,11 +10,6 @@
 
 #include "c.h"
 
-/* Exported functions */
-extern char *string(char *str);
-extern char *stringn(char *str, int len);
-extern char *stringd(int n);
-
 
 /* Data */
 static struct string {
