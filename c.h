@@ -87,6 +87,33 @@ typedef struct field *Field;
 
 /* interface */
 
+typedef struct metrics {
+    unsigned char size, align, outofline;
+} Metrics;
+
+typedef struct interface {
+    /* metrics */
+    Metrics charmetric;
+    Metrics shortmetric;
+    Metrics intmetric;
+    Metrics floatmetric;
+    Metrics doublemetric;
+    Metrics ptrmetric;
+    Metrics structmetric;
+
+    /* interface flags */
+
+    /* interface functions */
+    void (*stabblock) (int, int, Symbol*);
+    void (*stabend) (Coordinate *, Symbol, Coordinate **, Symbol *, Symbol *);
+    void (*stabfend) (Symbol, int);
+    void (*stabinit) (char *, int, char *[]);
+    void (*stabline) (Coordinate *);
+    void (*stabsym) (Symbol);
+    void (*stabtype) (Symbol);
+    Xinterface x;
+} Interface;
+
 
 /* ----- exported types ----- */
 enum { PERM=0, FUNC, STMT };
