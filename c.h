@@ -128,6 +128,8 @@ typedef struct interface {
     void (*function) (Symbol, Symbol[], Symbol[], int);
     void (*emit) (Node);
     void (*gen) (Node);
+    void (*blockbeg) (Env *);
+    void (*blockend) (Env *);
     
     /* functions for debug info output */
     void (*stabblock) (int, int, Symbol*);
@@ -304,3 +306,7 @@ extern void *newarray(unsigned long m, unsigned long n, unsigned a);
 extern char *string(char *str);
 extern char *stringn(char *str, int len);
 extern char *stringd(int n);
+
+/* exported functions: dag.c */
+extern void emitcode (void);
+extern void gencode (Symbol[], Symbol[]);
