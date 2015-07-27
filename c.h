@@ -143,6 +143,14 @@ typedef struct interface {
     Xinterface x;
 } Interface;
 
+typedef struct binding {
+    char *name;
+    Interface *ir;
+} Binding;
+
+extern Binding Bindings[];
+extern Interface *IR;
+
 
 /* ----- exported types ----- */
 enum { PERM=0, FUNC, STMT };
