@@ -15,6 +15,9 @@
 #define NULL ((void*)0)
 #define NELEMS(a) ((int)(sizeof (a)/sizeof ((a)[0])))
 #define roundup(x,n) (((x)+((n)-1))&(~((n)-1)))
+#define generic(op) ((op)&~15)
+#define opindex(op) ((op)>>4)
+#define optype(op) ((op)&15)
 
 /* exported macros: alloc.c */
 #define NEW(p,a) ((p)) = allocate(sizeof *(p), (a))
