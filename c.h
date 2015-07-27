@@ -56,6 +56,8 @@
 
 
 /* ----- typedefs ----- */
+typedef struct node *Node;
+
 /* typedefs: sym.c */
 typedef struct symbol *Symbol;
 typedef struct coord {
@@ -104,6 +106,7 @@ typedef struct interface {
     /* interface flags */
 
     /* interface functions */
+    /* functions for debug info output */
     void (*stabblock) (int, int, Symbol*);
     void (*stabend) (Coordinate *, Symbol, Coordinate **, Symbol *, Symbol *);
     void (*stabfend) (Symbol, int);
@@ -111,12 +114,52 @@ typedef struct interface {
     void (*stabline) (Coordinate *);
     void (*stabsym) (Symbol);
     void (*stabtype) (Symbol);
+
     Xinterface x;
 } Interface;
 
 
 /* ----- exported types ----- */
 enum { PERM=0, FUNC, STMT };
+
+struct node {
+    short op;
+    short count;
+    Symbol syms[3];
+    Node kids[2];
+    Node link;
+    Xnode x;
+};
+
+enum {
+    F=FLOAT,
+    D=DOUBLE,
+    C=CHAR,
+    S=SHORT,
+    I=INT,
+    U=UNSIGNED,
+    P=POINTER,
+    V=VOID,
+    B=STRUCT
+};
+
+enum {
+    CNST=1<<4,
+    CNSTC=CNST+C,
+    CNSTD=CNST+D,
+    CNSTF=CNST+F,
+    CNSTI=CNST+I,
+    CNSTP=CNST+P,
+    CNSTS=CNST+S,
+    CNSTU=CNST+U,
+
+    ARG=2<<4,
+    ARGB=ARG+B,
+    ARGD=ARG+D,
+    ARGF=ARG+F,
+    ARGI=ARG+I,
+    ARGP=ARG+P
+};
 
 /* exported types: type.c */
 struct symbol {
