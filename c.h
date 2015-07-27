@@ -104,8 +104,31 @@ typedef struct interface {
     Metrics structmetric;
 
     /* interface flags */
+    unsigned little_endian:1;
+    unsigned mulops_calls:1;
+    unsigned wants_callb:1;
+    unsigned wants_argb:1;
+    unsigned left_to_right:1;
+    unsigned wants_dag:1;
 
     /* interface functions */
+    void (*progbeg) (int argc, char *argv[]);
+    void (*progend) (void);
+    void (*defsymbol) (Symbol);
+    void (*export) (Symbol);
+    void (*import) (Symbol);
+    void (*global) (Symbol);
+    void (*local) (Symbol);
+    void (*address) (Symbol p, Symbol q, int n);
+    void (*segment) (int);
+    void (*defaddress) (Symbol);
+    void (*defconst) (int ty, Value v);
+    void (*defstring) (int n, char *s);
+    void (*space) (int);
+    void (*function) (Symbol, Symbol[], Symbol[], int);
+    void (*emit) (Node);
+    void (*gen) (Node);
+    
     /* functions for debug info output */
     void (*stabblock) (int, int, Symbol*);
     void (*stabend) (Coordinate *, Symbol, Coordinate **, Symbol *, Symbol *);
@@ -160,6 +183,8 @@ enum {
     ARGI=ARG+I,
     ARGP=ARG+P
 };
+
+enum { CODE=1, BSS, DATA, LIT };
 
 /* exported types: type.c */
 struct symbol {
