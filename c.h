@@ -56,6 +56,10 @@
 
 #define widen(t) (isint(t) || isenum(t) ? INT : ttob(t))
 
+/* exported macros: input.c */
+#define MAXLINE 512
+#define BUFSIZE 4096
+
 
 
 /* ----- typedefs ----- */
@@ -304,6 +308,18 @@ extern Type unsignedshort;
 extern Type unsignedtype;
 extern Type voidptype;
 extern Type voidtype;
+
+/* exported data: input.c */
+extern char *bp;      /* points to the next char in the output buf */
+extern unsigned char *cp;    /* cp points to the current input char */
+extern unsigned char *limit; /* limit points one char past the  */
+                             /*   end of the char in the buffer */
+extern int infd;
+extern char *fisrtfile;
+extern char *file;
+extern char *line;
+extern int lineno;
+
 
 
 
